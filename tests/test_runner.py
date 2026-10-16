@@ -19,8 +19,9 @@ from llm_evals.scorers import build_scorers
 from llm_evals.scorers.toxicity import RecordedClassifier
 from llm_evals.thresholds import load_thresholds
 
-SUITES = Path("suites")
-THRESHOLDS = load_thresholds("thresholds.toml")
+ROOT = Path(__file__).resolve().parent.parent
+SUITES = ROOT / "suites"
+THRESHOLDS = load_thresholds(ROOT / "thresholds.toml")
 
 
 def harness(split):

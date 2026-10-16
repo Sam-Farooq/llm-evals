@@ -177,12 +177,19 @@ def build_report(
         values = [c.value for c in cases]
         threshold = thresholds.for_scorer(name)
         worst = min(cases, key=lambda c: c.value)
+        # pass_rate counts the cases that clear the bar this scorer is judged
+        # against: case_floor when the metric is pass_rate, the floor itself
+        # otherwise. A fixed 1.0 bar would print 0.0000 beside a passing
+        # toxicity row, which reads as the opposite of what happened.
+        bar = 1.0
+        if threshold is not None:
+            bar = threshold.case_floor if threshold.metric == "pass_rate" else threshold.floor
         row = {
             "scorer": name,
             "n": len(cases),
             "mean": round(sum(values) / len(values), 4),
             "min": round(min(values), 4),
-            "pass_rate": round(sum(1 for v in values if v >= 1.0) / len(values), 4),
+            "pass_rate": round(sum(1 for v in values if v >= bar) / len(values), 4),
             "worst_case": worst.case_id,
         }
         if threshold is None:
@@ -236,16 +243,54 @@ def build_report(
     )
 
 
-def failing_cases(scored: Sequence[ScoredCase], limit: int = 5) -> list[Mapping[str, object]]:
-    """The lowest-scoring cases, for the lines printed under a failed run."""
-    ordered = sorted(scored, key=lambda c: (c.value, c.scorer, c.case_id))
+# The first of these a scorer's detail carries is the line worth printing.
+_REASON_KEYS = (
+    "error_type",
+    "failed",
+    "unsupported_numbers",
+    "unsupported_quotes",
+    "unsupported_sentences",
+    "worst_label",
+    "reason",
+)
+
+
+def reason(detail: Mapping[str, object]) -> str:
+    for key in _REASON_KEYS:
+        value = detail.get(key)
+        if value:
+            return f"{key}={value}"
+    return ""
+
+
+def failed_scorers(report: Report) -> set[str]:
+    frame = report.scorers
+    return set(frame.loc[frame["verdict"] == FAIL, "scorer"])
+
+
+def failing_cases(
+    scored: Sequence[ScoredCase],
+    limit: int = 5,
+    scorers: Iterable[str] | None = None,
+) -> list[Mapping[str, object]]:
+    """The lowest-scoring cases, for the lines printed under a failed run.
+
+    `scorers` narrows it to the ones that actually failed. Without that, a
+    toxicity case at 0.96 is listed under a run that failed on format, and the
+    first line a reader sees points at the wrong scorer.
+    """
+    allowed = None if scorers is None else set(scorers)
+    pool = [
+        c for c in scored if c.value < 1.0 and (allowed is None or c.scorer in allowed)
+    ]
+    ordered = sorted(pool, key=lambda c: (c.value, c.scorer, c.case_id))
     return [
         {
             "case_id": c.case_id,
             "scorer": c.scorer,
             "value": round(c.value, 4),
+            "reason": reason(c.detail),
             "detail": dict(c.detail),
         }
         for c in ordered[:limit]
-        if c.value < 1.0
     ]

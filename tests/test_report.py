@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import pathlib
 
 import pytest
 
@@ -149,7 +150,8 @@ def test_everything_clearing_its_floor_passes():
 
 
 def test_the_shipped_threshold_file_loads():
-    thresholds = load_thresholds("thresholds.toml")
+    root = pathlib.Path(__file__).resolve().parent.parent
+    thresholds = load_thresholds(root / "thresholds.toml")
     assert set(thresholds.scorers) == {"groundedness", "refusal", "format", "toxicity"}
     assert thresholds.scorers["toxicity"].metric == "min"
     assert thresholds.rates == {"over_refusal": 0.02, "under_refusal": 0.02}
