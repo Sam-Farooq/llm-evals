@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push: {branches: [main]}
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -e ".[dev]"
+      - run: ruff check src tests
+
+      # The whole offline claim rests on these four not being installed. If a
+      # dependency creeps into the base install, the suite starts passing for
+      # a reason nobody intended and a model call could reach the network.
+      - name: no provider package in the base install
+        run: |
+          python - <<'PY'
+          import importlib.util
+          present = [
+              name
+              for name in ("anthropic", "openai", "transformers", "langfuse")
+              if importlib.util.find_spec(name) is not None
+          ]
+          assert not present, f"the base install pulled in {present}"
+          PY
+
+      - run: pytest -q
+
+  suites:
+    # The code can be right while the shipped case files say nothing. These
+    # steps assert the numbers the README quotes, through the CLI.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -e ".[dev]"
+
+      - name: the dev baseline passes with nothing skipped
+        run: |
+          llm-evals run --strict > dev.txt
+          cat dev.txt
+          grep -q "verdict: pass" dev.txt
+
+      - name: the held-out split fails on the hedged refusal
+        run: |
+          code=0
+          llm-evals run --split holdout --release > holdout.txt || code=$?
+          cat holdout.txt
+          test "$code" -eq 1
+          grep -q "error_type=under_refusal" holdout.txt
+          grep -q "under_refusal  0.2000" holdout.txt
+
+      - name: the held-out split refuses to run without --release
+        run: |
+          code=0
+          llm-evals run --split holdout > /dev/null 2>&1 || code=$?
+          test "$code" -eq 2
+
+      - name: a six word cap takes format and grounding down, not refusal
+        run: |
+          code=0
+          llm-evals run --guardrails --word-limit 6 \
+            --scorers groundedness,refusal,format > guarded.txt || code=$?
+          cat guarded.txt
+          test "$code" -eq 1
+          grep -qE "^format +5 +0\.6000" guarded.txt
+          grep -qE "^refusal +6 +1\.0000" guarded.txt
