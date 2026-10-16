@@ -4,7 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llm-evals"
-version = "0.4.0"
+# Pre-1.0 deliberately. The scorer signatures and the report shape are settled,
+# but no threshold in thresholds.toml came from a measured baseline and neither
+# live client has ever been run against a real provider, so this is not the
+# version that promises a stable surface.
+version = "0.3.0"
 description = "Scorers, held-out suites and a guardrail chain for model output"
 requires-python = ">=3.11"
 dependencies = [

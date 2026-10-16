@@ -10,4 +10,4 @@ from llm_evals.cases import EvalCase, SuiteError, load_suite
 from llm_evals.scorers.base import Score, ScoredCase
 
 __all__ = ["EvalCase", "Score", "ScoredCase", "SuiteError", "load_suite"]
-__version__ = "0.4.0"
+__version__ = "0.3.0"

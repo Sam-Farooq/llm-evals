@@ -177,7 +177,7 @@ the two rates are reported apart.
 
 ## Offline by construction
 
-131 tests, no network, no key, no weights, no container.
+132 tests, no network, no key, no weights, no container.
 
 ```
 pytest -q
