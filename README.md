@@ -43,8 +43,10 @@ hides it. Groundedness is a mean. Refusal and format are pass rates.
 Averaging the scorers produces a figure that cannot regress, because the
 commonest real change moves them in opposite directions at once.
 
-Here is that, measured on the 21 dev cases with one guardrail added and
-nothing else touched:
+Here is that on the dev split, with one guardrail added and nothing else
+touched. The command names three scorers, so it covers 17 of the 21 cases
+and prints `skipped: toxicity`; the last bullet of "Not done" says why the
+toxicity recording cannot answer a response a guardrail rewrote:
 
 ```
 llm-evals run --guardrails --word-limit 6 --scorers groundedness,refusal,format
