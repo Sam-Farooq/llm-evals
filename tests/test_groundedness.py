@@ -119,3 +119,27 @@ def test_only_the_signals_that_apply_are_reported():
     )
     assert no_numbers.detail["signals"] == ["lexical"]
     assert "numeric" not in no_numbers.detail
+
+
+def test_a_thousands_separator_is_not_a_different_number():
+    context = ("There were 1,200 refunds and 48,000 orders in September.",)
+    # Same figures, written without the separators.
+    score = groundedness("How many refunds?", "There were 1200 refunds of 48000 orders.", context)
+    assert score.detail["unsupported_numbers"] == []
+    assert score.detail["numeric"] == 1.0
+    # And the other way round.
+    flipped = groundedness(
+        "How many refunds?",
+        "There were 1,200 refunds of 48,000 orders.",
+        ("There were 1200 refunds and 48000 orders in September.",),
+    )
+    assert flipped.detail["numeric"] == 1.0
+
+
+def test_a_number_followed_by_a_comma_is_not_read_as_part_of_the_number():
+    context = (*POLICY, "Bank transfers are refunded within 10 business days.")
+    # The comma sits directly against the 5. Reading "5," as the number makes
+    # a figure that is in the policy look invented.
+    score = groundedness("How long?", "Reviews take 5, transfers take 10.", context)
+    assert score.detail["unsupported_numbers"] == []
+    assert score.detail["numeric"] == 1.0

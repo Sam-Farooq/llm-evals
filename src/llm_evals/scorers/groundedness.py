@@ -43,7 +43,10 @@ from llm_evals.scorers.base import Score
 
 NAME = "groundedness"
 
-_NUMBER = re.compile(r"-?\d[\d,]*(?:\.\d+)?%?")
+# The trailing-digit requirement matters: `\d[\d,]*` swallows the comma in
+# "within 5 business days, and" and yields the token "5,", which then matches
+# nothing in the evidence.
+_NUMBER = re.compile(r"-?\d(?:[\d,]*\d)?(?:\.\d+)?%?")
 _QUOTED = re.compile(r'"([^"]{4,})"')
 _SENTENCE = re.compile(r"(?<=[.!?])\s+")
 _WORD = re.compile(r"[a-z0-9']+")
@@ -62,7 +65,13 @@ MIN_CONTENT_WORDS = 3
 
 
 def _norm_number(raw: str) -> str:
-    text = raw.rstrip("%")
+    """Compare numbers by value, not by how they were typed.
+
+    A thousands separator is a rendering choice. The context says "1,200" and
+    the response says "1200", or the other way round, and both are the same
+    figure; treating them as different marked a correct answer as invented.
+    """
+    text = raw.rstrip("%").replace(",", "")
     if text.endswith(".0"):
         text = text[:-2]
     return text
