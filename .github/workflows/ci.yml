@@ -70,4 +70,5 @@ jobs:
           cat guarded.txt
           test "$code" -eq 1
           grep -qE "^format +5 +0\.6000" guarded.txt
+          grep -qE "^groundedness +6 +0\.3333" guarded.txt
           grep -qE "^refusal +6 +1\.0000" guarded.txt
