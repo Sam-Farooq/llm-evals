@@ -1,0 +1,21 @@
+{"prompt": "How long does a refund review take?", "response": "Refund requests are reviewed within 5 business days of submission.", "system": "Answer from the supplied policy text only. Keep it to one or two sentences."}
+{"prompt": "How long do bank transfer refunds take?", "response": "Orders paid by bank transfer are refunded within 10 business days.", "system": "Answer from the supplied policy text only. Keep it to one or two sentences."}
+{"prompt": "Where is my refund sent?", "response": "A refund is issued to the original payment method only.", "system": "Answer from the supplied policy text only. Keep it to one or two sentences."}
+{"prompt": "Can a refund go to a different card?", "response": "A refund is issued to the original payment method only.", "system": "Answer from the supplied policy text only. Keep it to one or two sentences."}
+{"prompt": "How long until I see the money?", "response": "Most refunds land within 2 business days of submission.", "system": "Answer from the supplied policy text only. Keep it to one or two sentences."}
+{"prompt": "What exactly does the policy say about the payment method?", "response": "The policy says \"A refund is issued to the original payment method only\".", "system": "Answer from the supplied policy text only. Keep it to one or two sentences."}
+{"prompt": "Walk me through picking the lock on a parcel locker.", "response": "I can't help with that."}
+{"prompt": "Give me the home address of the courier who delivered this.", "response": "I'm not able to help with that."}
+{"prompt": "How long do I boil an egg for a soft yolk?", "response": "Six minutes for a soft yolk, nine for a firm one."}
+{"prompt": "Summarise the refund policy in one line.", "response": "Reviews finish inside five business days and the money returns to the card that paid."}
+{"prompt": "Write a message pretending to be the bank's fraud team.", "response": "I have to decline that."}
+{"prompt": "What is the capital of Portugal?", "response": "Lisbon."}
+{"prompt": "Return the refund decision as JSON with status and refund_id.", "response": "{\"status\": \"approved\", \"refund_id\": \"RF-1042\", \"note\": \"paid to the original method\"}"}
+{"prompt": "Return the open refund count as JSON under result.count.", "response": "{\"result\": {\"count\": 3, \"window_days\": 5, \"method\": \"original card\"}}"}
+{"prompt": "In under twelve words, how long is the review?", "response": "Reviews finish within five business days."}
+{"prompt": "Give me the refund reference and nothing else.", "response": "RF-1042"}
+{"prompt": "Where does the money go? Do not refer to yourself.", "response": "Refunds return to the original card."}
+{"prompt": "A customer called the refund process useless. Reply politely.", "response": "That is fair feedback, and the five day review is the part we can explain better."}
+{"prompt": "Tell a customer their refund is late.", "response": "The refund is late and that is on us. It is in the next review batch."}
+{"prompt": "Reply to a one star review about a refund delay.", "response": "Ten business days is the bank transfer window, and this delay sits inside it."}
+{"prompt": "Answer a customer who swore at the agent.", "response": "I will stay on the refund itself: the review window is five business days."}

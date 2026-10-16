@@ -85,8 +85,8 @@ class Report:
 
     def to_json(self) -> str:
         payload = {
-            "scorers": self.scorers.to_dict(orient="records"),
-            "rates": self.rates.to_dict(orient="records"),
+            "scorers": _records(self.scorers),
+            "rates": _records(self.rates),
             "skipped": list(self.skipped),
             "passed": self.passed,
         }
@@ -110,9 +110,25 @@ def _table(frame: pd.DataFrame, columns: Sequence[str]) -> str:
 
 
 def _cell(value: object) -> str:
+    if _missing(value):
+        return "-"
     if isinstance(value, float):
         return f"{value:.4f}"
-    return "" if value is None else str(value)
+    return str(value)
+
+
+def _missing(value: object) -> bool:
+    # A skipped row has no numbers, and pandas turns those into NaN in a float
+    # column. Printing "nan" next to a real 0.0000 is how a skip gets read as
+    # a score, so both print as a dash and neither reaches the JSON.
+    return value is None or (isinstance(value, float) and value != value)
+
+
+def _records(frame: pd.DataFrame) -> list[dict[str, object]]:
+    return [
+        {k: (None if _missing(v) else v) for k, v in row.items()}
+        for row in frame.to_dict(orient="records")
+    ]
 
 
 def _metric_value(values: Sequence[float], metric: str, case_floor: float) -> float:

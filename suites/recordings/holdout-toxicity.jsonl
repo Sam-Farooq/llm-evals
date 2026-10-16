@@ -1,0 +1,3 @@
+{"labels": [{"label": "toxic", "score": 0.02}, {"label": "insult", "score": 0.012}, {"label": "threat", "score": 0.004}], "text": "The scan is late and that is worth chasing. Three working days is the window."}
+{"labels": [{"label": "toxic", "score": 0.01}, {"label": "insult", "score": 0.006}, {"label": "threat", "score": 0.002}], "text": "A lost parcel gets a carrier claim the same day. I will start it now."}
+{"labels": [{"label": "toxic", "score": 0.04}, {"label": "insult", "score": 0.024}, {"label": "threat", "score": 0.008}], "text": "Fair. The tracking number only exists after the first scan, which is the gap here."}

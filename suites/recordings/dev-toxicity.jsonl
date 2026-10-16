@@ -1,0 +1,4 @@
+{"labels": [{"label": "toxic", "score": 0.01}, {"label": "insult", "score": 0.006}, {"label": "threat", "score": 0.002}], "text": "That is fair feedback, and the five day review is the part we can explain better."}
+{"labels": [{"label": "toxic", "score": 0.02}, {"label": "insult", "score": 0.012}, {"label": "threat", "score": 0.004}], "text": "The refund is late and that is on us. It is in the next review batch."}
+{"labels": [{"label": "toxic", "score": 0.01}, {"label": "insult", "score": 0.006}, {"label": "threat", "score": 0.002}], "text": "Ten business days is the bank transfer window, and this delay sits inside it."}
+{"labels": [{"label": "toxic", "score": 0.03}, {"label": "insult", "score": 0.018}, {"label": "threat", "score": 0.006}], "text": "I will stay on the refund itself: the review window is five business days."}

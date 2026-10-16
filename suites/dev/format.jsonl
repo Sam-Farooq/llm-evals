@@ -1,0 +1,5 @@
+{"case_id": "f-01", "prompt": "Return the refund decision as JSON with status and refund_id.", "scorers": ["format"], "spec": {"format": {"json": true, "json_only": true, "required_keys": ["status", "refund_id"]}}, "tags": ["format"]}
+{"case_id": "f-02", "prompt": "Return the open refund count as JSON under result.count.", "scorers": ["format"], "spec": {"format": {"json_only": true, "required_keys": ["result.count"]}}, "tags": ["format"]}
+{"case_id": "f-03", "prompt": "In under twelve words, how long is the review?", "scorers": ["format"], "spec": {"format": {"max_words": 12}}, "tags": ["format"]}
+{"case_id": "f-04", "prompt": "Give me the refund reference and nothing else.", "scorers": ["format"], "spec": {"format": {"max_words": 2, "pattern": "[A-Z]{2}-[0-9]{4}"}}, "tags": ["format"]}
+{"case_id": "f-05", "prompt": "Where does the money go? Do not refer to yourself.", "scorers": ["format"], "spec": {"format": {"forbidden_pattern": "(?i)as an ai", "max_words": 20}}, "tags": ["format"]}
