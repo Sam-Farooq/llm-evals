@@ -19,7 +19,7 @@ dev = ["pytest==9.1.1", "ruff==0.16.10"]
 anthropic = ["anthropic>=0.40.0"]
 openai = ["openai>=1.50.0"]
 toxicity = ["transformers>=4.44.0", "torch>=2.4.0"]
-tracing = ["langfuse>=2.50.0"]
+tracing = ["langfuse>=2.50.0,<3.0.0"]
 
 [project.scripts]
 llm-evals = "llm_evals.cli:main"
