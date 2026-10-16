@@ -1,4 +1,5 @@
 """Format adherence. The interesting assertion is that partial is not the score."""
+
 from __future__ import annotations
 
 import pytest

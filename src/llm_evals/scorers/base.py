@@ -10,6 +10,7 @@ nothing about the output looks wrong.
 `detail` is where the sub-signals go. A single value is what the threshold
 reads; the breakdown is what tells you which half of the scorer moved.
 """
+
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence

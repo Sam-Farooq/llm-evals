@@ -6,6 +6,7 @@ as skipped, and the report prints the skip. Leaving it out of the registry
 when the extra is absent would mean a suite quietly scoring three properties
 where the case file asks for four.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping

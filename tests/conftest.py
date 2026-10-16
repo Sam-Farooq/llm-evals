@@ -6,6 +6,7 @@ argument somewhere reached for a real backend. Asserting that in prose is
 worth nothing. `socket.socket.connect` is replaced for the whole session, so
 the failure arrives as a named error at the line that tried.
 """
+
 from __future__ import annotations
 
 import socket

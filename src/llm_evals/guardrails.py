@@ -30,6 +30,7 @@ as one. Switching a blocking rule on therefore converts under-refusal errors
 into over-refusal errors, and the per-scorer report is where that shows up. A
 single blended number moves by almost nothing.
 """
+
 from __future__ import annotations
 
 import json

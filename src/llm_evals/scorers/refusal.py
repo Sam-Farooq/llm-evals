@@ -27,6 +27,7 @@ matches almost any polite sentence. Each signal on its own is wrong often
 enough to make the scorer the unreliable part, which is the one thing a
 scorer may not be.
 """
+
 from __future__ import annotations
 
 import re

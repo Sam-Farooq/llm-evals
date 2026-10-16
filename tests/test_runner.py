@@ -3,6 +3,7 @@
 These are the numbers the README quotes. If a scorer changes, this file is
 where the change shows up first.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

@@ -13,6 +13,7 @@ jobs:
         with: {python-version: "3.11", cache: pip}
       - run: pip install -e ".[dev]"
       - run: ruff check src tests
+      - run: ruff format --check .
 
       # The whole offline claim rests on these four not being installed. If a
       # dependency creeps into the base install, the suite starts passing for

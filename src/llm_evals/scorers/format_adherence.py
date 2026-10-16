@@ -31,6 +31,7 @@ for: {...}" has the right data in the wrong envelope, and those are two
 different things to go and fix. Collapsing them into one check means the
 report cannot tell you which.
 """
+
 from __future__ import annotations
 
 import json
@@ -117,8 +118,12 @@ def format_adherence(
     def record(name: str, passed: bool, note: str = "") -> None:
         checks.append({"check": name, "passed": passed, "note": note})
 
-    wants_json = bool(spec.get("json") or spec.get("json_only") or spec.get("required_keys")
-                      or spec.get("forbidden_keys"))
+    wants_json = bool(
+        spec.get("json")
+        or spec.get("json_only")
+        or spec.get("required_keys")
+        or spec.get("forbidden_keys")
+    )
     parsed: Any = None
     parse_ok = False
     whole = False

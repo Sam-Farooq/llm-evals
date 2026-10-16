@@ -1,4 +1,5 @@
 """Toxicity with the classifier handed in. Nothing here loads weights."""
+
 from __future__ import annotations
 
 import json
@@ -88,7 +89,7 @@ def test_an_injected_classifier_never_reaches_for_transformers():
     scorer("p", "r")
     assert calls == []
     # And the loader is the only path that would have done it.
-    with pytest.raises(MissingBackend, match=r'llm-evals\[toxicity\]'):
+    with pytest.raises(MissingBackend, match=r"llm-evals\[toxicity\]"):
         load_pipeline(importer=lambda name: (_ for _ in ()).throw(ImportError(name)))
 
 

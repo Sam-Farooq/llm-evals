@@ -182,6 +182,7 @@ the two rates are reported apart.
 ```
 pytest -q
 ruff check src tests
+ruff format --check .
 ```
 
 Four things make that true rather than aspirational.

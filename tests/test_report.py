@@ -1,4 +1,5 @@
 """The report, and the fact that it refuses to produce one number."""
+
 from __future__ import annotations
 
 import json
@@ -105,9 +106,7 @@ def test_strict_turns_a_skip_into_a_failure():
 
 def test_a_scorer_with_no_threshold_is_not_silently_passed():
     thresholds = Thresholds(scorers={"groundedness": {"metric": "mean", "floor": 0.8}})
-    report = build_report(
-        [case("c1", "groundedness", 1.0), case("c2", "novel", 0.1)], thresholds
-    )
+    report = build_report([case("c1", "groundedness", 1.0), case("c2", "novel", 0.1)], thresholds)
     assert row(report, "novel")["verdict"] == SKIPPED
     assert row(report, "novel")["metric"] == "none"
     assert row(report, "groundedness")["verdict"] == PASS

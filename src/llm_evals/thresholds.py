@@ -1,4 +1,5 @@
 """Reading thresholds.toml, and refusing the ones that cannot mean anything."""
+
 from __future__ import annotations
 
 import tomllib

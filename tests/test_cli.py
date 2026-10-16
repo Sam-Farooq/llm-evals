@@ -3,6 +3,7 @@
 Every command in the README has a test here, because a command in a README
 that does not run is worse than no README.
 """
+
 from __future__ import annotations
 
 import json

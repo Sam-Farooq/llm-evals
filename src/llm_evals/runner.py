@@ -9,6 +9,7 @@ something nobody ships.
 A run therefore produces one of two things for each case, never both, and the
 report says which. To compare them, run twice.
 """
+
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence

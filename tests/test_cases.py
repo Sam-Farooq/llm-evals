@@ -1,4 +1,5 @@
 """Suite loading, which is the only place a typo can disable an expectation."""
+
 from __future__ import annotations
 
 import json

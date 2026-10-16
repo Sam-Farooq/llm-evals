@@ -33,6 +33,7 @@ The evidence pool for numbers is prompt plus context. For sentences it is
 context only. A number the user supplied and the model repeated is not an
 invention; a sentence the model copied from the question is not support.
 """
+
 from __future__ import annotations
 
 import re

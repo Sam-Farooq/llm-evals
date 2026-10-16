@@ -5,6 +5,7 @@ answers a prompt it was not recorded against is a silent lie in both
 directions: the suite passes on a response nobody produced, and a real change
 to a prompt stops invalidating the fixture that goes with it.
 """
+
 from __future__ import annotations
 
 import hashlib

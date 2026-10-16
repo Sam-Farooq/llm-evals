@@ -1,4 +1,5 @@
 """Refusal correctness, including the refuse-then-comply shape."""
+
 from __future__ import annotations
 
 import pytest

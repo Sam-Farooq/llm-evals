@@ -25,6 +25,7 @@ appears with `verdict = "skipped"`. A report that silently omits it is the
 regression-hiding failure this file exists to avoid, so `strict=True` turns a
 skip into a failure.
 """
+
 from __future__ import annotations
 
 import json
@@ -97,14 +98,11 @@ def _table(frame: pd.DataFrame, columns: Sequence[str]) -> str:
     present = [c for c in columns if c in frame.columns]
     if frame.empty:
         return "  (no rows)"
-    widths = {
-        c: max(len(c), *(len(_cell(v)) for v in frame[c])) for c in present
-    }
+    widths = {c: max(len(c), *(len(_cell(v)) for v in frame[c])) for c in present}
     header = "  ".join(c.ljust(widths[c]) for c in present)
     rule = "  ".join("-" * widths[c] for c in present)
     rows = [
-        "  ".join(_cell(row[c]).ljust(widths[c]) for c in present)
-        for _, row in frame.iterrows()
+        "  ".join(_cell(row[c]).ljust(widths[c]) for c in present) for _, row in frame.iterrows()
     ]
     return "\n".join([header, rule, *rows])
 
@@ -280,9 +278,7 @@ def failing_cases(
     first line a reader sees points at the wrong scorer.
     """
     allowed = None if scorers is None else set(scorers)
-    pool = [
-        c for c in scored if c.value < 1.0 and (allowed is None or c.scorer in allowed)
-    ]
+    pool = [c for c in scored if c.value < 1.0 and (allowed is None or c.scorer in allowed)]
     ordered = sorted(pool, key=lambda c: (c.value, c.scorer, c.case_id))
     return [
         {

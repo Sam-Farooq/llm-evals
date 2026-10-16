@@ -1,4 +1,5 @@
 """The chain, including the two rules that cannot be in it together."""
+
 from __future__ import annotations
 
 import json

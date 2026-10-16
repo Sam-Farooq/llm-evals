@@ -1,4 +1,5 @@
 """Tracing, mostly asserting that the unconfigured path does nothing."""
+
 from __future__ import annotations
 
 import pytest
@@ -133,5 +134,5 @@ def test_keys_set_with_the_package_missing_is_an_error_not_a_quiet_fallback():
     def absent(name):
         raise ImportError(name)
 
-    with pytest.raises(MissingBackend, match=r'llm-evals\[tracing\]'):
+    with pytest.raises(MissingBackend, match=r"llm-evals\[tracing\]"):
         get_tracer(dict(KEYS), importer=absent)

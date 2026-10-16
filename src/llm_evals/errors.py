@@ -1,4 +1,5 @@
 """Failures that are the caller's to fix, kept distinct from a bad score."""
+
 from __future__ import annotations
 
 
@@ -15,8 +16,7 @@ class MissingBackend(RuntimeError):
 
     def __init__(self, what: str, extra: str) -> None:
         super().__init__(
-            f"{what} needs an extra that is not installed: "
-            f'pip install "llm-evals[{extra}]"'
+            f'{what} needs an extra that is not installed: pip install "llm-evals[{extra}]"'
         )
         self.what = what
         self.extra = extra

@@ -22,6 +22,7 @@ in CI with recorded judgements, which is the only way the toxicity scorer gets
 exercised without weights. The recordings are fixtures written by hand, not
 captured output; `llm-evals record` is how real ones get captured.
 """
+
 from __future__ import annotations
 
 import importlib

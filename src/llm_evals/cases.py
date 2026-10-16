@@ -10,6 +10,7 @@ eleven are null on every row.
 quietest possible way to disable an expectation: the file still parses, the
 scorer still runs, and it scores a case that is no longer asking anything.
 """
+
 from __future__ import annotations
 
 import json

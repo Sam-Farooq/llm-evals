@@ -24,6 +24,7 @@ replaced that with an OpenTelemetry-based API, so `llm-evals[tracing]` caps at
 `<3.0.0` rather than claiming to work with both. Supporting 3.x means another
 adapter, not a looser pin.
 """
+
 from __future__ import annotations
 
 import importlib

@@ -1,4 +1,5 @@
 """Groundedness on fixtures. No model, no context store, no network."""
+
 from __future__ import annotations
 
 from llm_evals.scorers.groundedness import groundedness, unsupported_spans
