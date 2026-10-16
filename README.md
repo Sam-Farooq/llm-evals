@@ -205,7 +205,9 @@ Four things make that true rather than aspirational.
    completions.
 
 The recordings in `suites/recordings/` were written by hand to exercise the
-scorers. They are fixtures, not captured output. The live capture path is:
+scorers. They are fixtures, not captured output, and
+[suites/recordings/README.md](suites/recordings/README.md) says so beside
+the files for anyone who opens the directory first. The live capture path is:
 
 ```
 llm-evals record --split dev --client anthropic --out suites/recordings/local-dev.jsonl
