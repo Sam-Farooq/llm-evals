@@ -69,6 +69,11 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--grounding-floor", type=float, default=None)
     run.add_argument("--toxicity-floor", type=float, default=0.5)
     run.add_argument("--strict", action="store_true", help="a skipped scorer fails the run")
+    run.add_argument(
+        "--distribution",
+        action="store_true",
+        help="print the per-case score bands; the JSON report always carries them",
+    )
     run.add_argument("--json", action="store_true")
     run.add_argument("--out", type=Path, default=None)
 
@@ -143,7 +148,7 @@ def _command_run(args: argparse.Namespace) -> int:
     )
     report = build_report(result.scored, thresholds, skipped=result.skipped, strict=args.strict)
 
-    text = report.to_json() if args.json else report.to_text()
+    text = report.to_json() if args.json else report.to_text(show_distribution=args.distribution)
     print(text)
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
