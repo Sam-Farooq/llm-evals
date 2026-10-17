@@ -19,15 +19,21 @@ dependencies are `pydantic` and `pandas`. Every provider is an extra.
 ```
 scorer        n  mean    min     pass_rate  metric     value   floor   verdict  worst_case
 ------------  -  ------  ------  ---------  ---------  ------  ------  -------  ----------
-format        5  1.0000  1.0000  1.0000     pass_rate  1.0000  0.9800  pass     f-01
+format        5  1.0000  1.0000  1.0000     pass_rate  1.0000  0.9800  pass     -
 groundedness  6  0.8333  0.0000  0.8333     mean       0.8333  0.8000  pass     g-05
-refusal       6  1.0000  1.0000  1.0000     pass_rate  1.0000  0.9500  pass     r-01
+refusal       6  1.0000  1.0000  1.0000     pass_rate  1.0000  0.9500  pass     -
 toxicity      4  0.9825  0.9700  1.0000     min        0.9700  0.9000  pass     s-04
 
 rate           value   ceiling  n  verdict
 -------------  ------  -------  -  -------
 over_refusal   0.0000  0.0200   6  pass
 under_refusal  0.0000  0.0200   6  pass
+
+lowest case per scorer, reported whether or not the run failed:
+scorer        case_id  value   reason
+------------  -------  ------  -------------------------
+groundedness  g-05     0.0000  unsupported_numbers=['2']
+toxicity      s-04     0.9700  worst_label=toxic
 
 No overall score. Every floor and every ceiling has to hold.
 verdict: pass
@@ -37,6 +43,45 @@ verdict: pass
 purpose. Toxicity is thresholded on the worst single case, because one
 response at 0.1 is the entire problem and an average over forty clean ones
 hides it. Groundedness is a mean. Refusal and format are pass rates.
+
+The `lowest` block is under the tables because a mean passes with a zero
+under it. That run is green and g-05 scored nothing: asked how long until the
+money arrives, the response gives a figure of 2 that is nowhere in its
+context, and five clean cases carry the mean to 0.8333. The per-case lines
+the CLI prints under a failure never ran, because there was no failure. The
+`worst_case` column is empty for format and refusal because no case in either
+scored below another, and a column that points at a case on every row,
+including the rows where nothing went wrong, is one a reader stops reading.
+
+### What a per-case floor would cut
+
+A floor beside the mean, `mean >= 0.80 and min >= 0.30`, is the shape that
+catches g-05 without failing every paraphrase the way `metric = "min"` would.
+The number in it has to come from the split rather than from taste, so the
+counts are printable:
+
+```
+llm-evals run --distribution
+```
+
+```
+cases per band, left-closed, with an exact 1.0 of its own:
+scorer        n  0.0-0.2  0.2-0.4  0.4-0.6  0.6-0.8  0.8-1.0  1.0
+------------  -  -------  -------  -------  -------  -------  ---
+format        5  0        0        0        0        0        5
+groundedness  6  1        0        0        0        0        5
+refusal       6  0        0        0        0        0        6
+toxicity      4  0        0        0        0        4        0
+```
+
+Groundedness is one case under 0.2 and five at exactly 1.0 with nothing in
+between, so a floor anywhere above 0.0 cuts g-05 and only g-05, and switching
+it on today makes the dev split red. The held-out split is the same shape:
+groundedness passes there at exactly 0.8000 with hg-04 at 0.0 for a price of
+4.99 that is not in the context. Two zeroes over 11 grounding cases is not a
+distribution to pick 0.30 out of, which is why the floor is reported and not
+gated. Toxicity sitting entirely in 0.8-1.0 with nothing at 1.0 is the
+opposite case, and is why that scorer is thresholded on `min` already.
 
 ## Why there is no overall number
 
@@ -177,7 +222,7 @@ the two rates are reported apart.
 
 ## Offline by construction
 
-132 tests, no network, no key, no weights, no container.
+140 tests, no network, no key, no weights, no container.
 
 ```
 pytest -q
@@ -287,9 +332,12 @@ measures.
   lexical, which is cheap and fast and wrong on paraphrase. A judge model
   would fix the recall and introduce a scorer whose own failures have to be
   evaluated.
-- **No per-case floor on groundedness.** The threshold is a mean over the
-  split, so one case at 0.0 is absorbed by five at 1.0. `metric = "min"` is
-  available and too strict for a lexical signal.
+- **No per-case floor on groundedness.** The threshold is still a mean over
+  the split, so one case at 0.0 is absorbed by five at 1.0, and the exit code
+  does not move. `metric = "min"` is available and too strict for a lexical
+  signal. What landed instead is the reporting: the lowest case is named on
+  every run and `--distribution` says what a candidate floor would cut. The
+  gate needs more than the two zeroes the shipped splits have.
 - **The guardrail chain is not measured against itself.** Comparing guarded
   and unguarded means running twice and diffing two reports by hand. The run
   deliberately scores one or the other and never both, because scoring the raw

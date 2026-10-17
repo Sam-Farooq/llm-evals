@@ -10,6 +10,12 @@
 #   min         the worst single case, for anything where one bad case matters
 #   pass_rate   the fraction of cases at or above case_floor
 
+# A mean, which passes with a zero under it: the dev split sits at 0.8333
+# with one case at 0.0. The report names that case on every run and
+# `llm-evals run --distribution` prints the per-case bands, which is what a
+# second floor (mean and min together) has to be set from. Not gated yet,
+# because 11 grounding cases across the two splits hold two zeroes and no
+# middle, so any floor above 0.0 is the same guess as this one.
 [scorers.groundedness]
 metric = "mean"
 floor = 0.80
