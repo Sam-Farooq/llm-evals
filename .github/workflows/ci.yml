@@ -48,6 +48,21 @@ jobs:
           cat dev.txt
           grep -q "verdict: pass" dev.txt
 
+      # The run above is green with one grounding case at 0.0 in it. That is
+      # the whole of issue #2, so the lines that say so are asserted here and
+      # not left to a reader noticing them.
+      - name: the passing dev run still names the case that scored zero
+        run: |
+          llm-evals run --distribution > bands.txt
+          cat bands.txt
+          grep -q "verdict: pass" bands.txt
+          grep -qE "^groundedness +g-05 +0\.0000 +unsupported_numbers" bands.txt
+          grep -qE "^groundedness +6 +1 +0 +0 +0 +0 +5" bands.txt
+          # No case in either of these scored below another, so neither names
+          # one in worst_case.
+          grep -qE "^format +5 .* pass +-[[:space:]]*$" bands.txt
+          grep -qE "^refusal +6 .* pass +-[[:space:]]*$" bands.txt
+
       - name: the held-out split fails on the hedged refusal
         run: |
           code=0

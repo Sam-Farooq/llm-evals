@@ -18,6 +18,19 @@ The only aggregate here is the exit code, and it is a conjunction: every
 scorer must clear its floor and every rate must stay under its ceiling. There
 is nothing to average.
 
+### The lowest case is named on a passing run
+
+A mean clears its floor with a zero under it: five cases at 1.0 and one at
+0.0 average to 0.8333 and pass a floor of 0.8. The per-case lines in the CLI
+only print when the run has already failed, so on the passing run the zero
+reached nobody. `lowest_cases` is printed either way, with the reason beside
+it, and `distribution` puts the per-case counts in bands so a per-case floor
+can be set from what the split actually scores rather than chosen.
+
+A tie is not a worst case. `worst_case` is empty when no case scored below
+another, because a column that points at a case on every row, including the
+rows where nothing went wrong, is one a reader learns to skip.
+
 ### A skipped scorer is reported, never dropped
 
 If a scorer could not run, for a missing extra or an absent recording, it
@@ -56,6 +69,18 @@ SCORER_COLUMNS = (
     "worst_case",
 )
 RATE_COLUMNS = ("rate", "value", "ceiling", "n", "verdict")
+LOWEST_COLUMNS = ("scorer", "case_id", "value", "reason")
+
+# Left-closed bands, with an exact 1.0 of its own. Most cases in a healthy
+# split sit at exactly 1.0, and folding them into 0.8-1.0 hides whether the
+# tail is one case or forty.
+BANDS = ((0.0, 0.2), (0.2, 0.4), (0.4, 0.6), (0.6, 0.8), (0.8, 1.0))
+BAND_COLUMNS = (*(f"{lo:.1f}-{hi:.1f}" for lo, hi in BANDS), "1.0")
+DISTRIBUTION_COLUMNS = ("scorer", "n", *BAND_COLUMNS)
+
+
+def _empty(columns: Sequence[str]) -> pd.DataFrame:
+    return pd.DataFrame([], columns=list(columns))
 
 
 @dataclass(frozen=True)
@@ -64,6 +89,8 @@ class Report:
     rates: pd.DataFrame
     skipped: tuple[str, ...] = field(default_factory=tuple)
     strict: bool = False
+    lowest: pd.DataFrame = field(default_factory=lambda: _empty(LOWEST_COLUMNS))
+    distribution: pd.DataFrame = field(default_factory=lambda: _empty(DISTRIBUTION_COLUMNS))
 
     @property
     def passed(self) -> bool:
@@ -71,11 +98,21 @@ class Report:
             return False
         return not (self.strict and self.skipped)
 
-    def to_text(self) -> str:
+    def to_text(self, *, show_distribution: bool = False) -> str:
         lines = [_table(self.scorers, SCORER_COLUMNS)]
         if not self.rates.empty:
             lines.append("")
             lines.append(_table(self.rates, RATE_COLUMNS))
+        lines.append("")
+        if self.lowest.empty:
+            lines.append("lowest: nothing scored below another case in its scorer.")
+        else:
+            lines.append("lowest case per scorer, reported whether or not the run failed:")
+            lines.append(_table(self.lowest, LOWEST_COLUMNS))
+        if show_distribution:
+            lines.append("")
+            lines.append("cases per band, left-closed, with an exact 1.0 of its own:")
+            lines.append(_table(self.distribution, DISTRIBUTION_COLUMNS))
         if self.skipped:
             lines.append("")
             lines.append("skipped: " + ", ".join(self.skipped))
@@ -88,6 +125,10 @@ class Report:
         payload = {
             "scorers": _records(self.scorers),
             "rates": _records(self.rates),
+            "lowest": _records(self.lowest),
+            # Always in the JSON, flag or not: a machine reading the report
+            # has no way to ask for it again.
+            "distribution": _records(self.distribution),
             "skipped": list(self.skipped),
             "passed": self.passed,
         }
@@ -129,6 +170,26 @@ def _records(frame: pd.DataFrame) -> list[dict[str, object]]:
     ]
 
 
+# The first of these a scorer's detail carries is the line worth printing.
+_REASON_KEYS = (
+    "error_type",
+    "failed",
+    "unsupported_numbers",
+    "unsupported_quotes",
+    "unsupported_sentences",
+    "worst_label",
+    "reason",
+)
+
+
+def reason(detail: Mapping[str, object]) -> str:
+    for key in _REASON_KEYS:
+        value = detail.get(key)
+        if value:
+            return f"{key}={value}"
+    return ""
+
+
 def _metric_value(values: Sequence[float], metric: str, case_floor: float) -> float:
     if metric == "mean":
         return sum(values) / len(values)
@@ -156,6 +217,68 @@ def refusal_rates(scored: Iterable[ScoredCase]) -> dict[str, tuple[float, int]]:
     }
 
 
+def _worst(cases: Sequence[ScoredCase]) -> ScoredCase | None:
+    """The case that scored below the others, or None when none of them did."""
+    worst = min(cases, key=lambda c: c.value)
+    return None if worst.value >= max(c.value for c in cases) else worst
+
+
+def lowest_cases(scored: Iterable[ScoredCase]) -> list[dict[str, object]]:
+    """The worst case per scorer, with the reason, for the scorers with a spread.
+
+    `failing_cases` answers "what broke this run" and only runs once the run
+    has broken. This answers "what is the worst thing in here", which is the
+    question a passing mean suppresses.
+    """
+    by_scorer: dict[str, list[ScoredCase]] = {}
+    for case in scored:
+        by_scorer.setdefault(case.scorer, []).append(case)
+    rows = []
+    for name in sorted(by_scorer):
+        worst = _worst(by_scorer[name])
+        if worst is None:
+            continue
+        rows.append(
+            {
+                "scorer": name,
+                "case_id": worst.case_id,
+                "value": round(worst.value, 4),
+                "reason": reason(worst.detail),
+            }
+        )
+    return rows
+
+
+def _band(value: float) -> str:
+    for (lo, hi), label in zip(BANDS, BAND_COLUMNS[:-1], strict=True):
+        if lo <= value < hi:
+            return label
+    return BAND_COLUMNS[-1]
+
+
+def distribution(scored: Iterable[ScoredCase]) -> pd.DataFrame:
+    """Cases per score band, per scorer.
+
+    A per-case floor has to come from somewhere. Picked without this it is the
+    same guess as the mean floor it is meant to back up; with it, the counts
+    say how many cases a candidate floor would cut before anyone gates on it.
+    """
+    counts: dict[str, dict[str, int]] = {}
+    for case in scored:
+        if not 0.0 <= case.value <= 1.0:
+            # A value outside the range belongs in no band, and a row whose
+            # bands sum to less than its own n is a table nobody re-adds.
+            raise ValueError(
+                f"{case.scorer} case {case.case_id}: score must be in [0, 1], got {case.value}"
+            )
+        row = counts.setdefault(case.scorer, dict.fromkeys(BAND_COLUMNS, 0))
+        row[_band(case.value)] += 1
+    rows = [
+        {"scorer": name, "n": sum(counts[name].values()), **counts[name]} for name in sorted(counts)
+    ]
+    return pd.DataFrame(rows, columns=list(DISTRIBUTION_COLUMNS))
+
+
 def build_report(
     scored: Sequence[ScoredCase],
     thresholds: Thresholds,
@@ -174,7 +297,7 @@ def build_report(
         cases = by_scorer[name]
         values = [c.value for c in cases]
         threshold = thresholds.for_scorer(name)
-        worst = min(cases, key=lambda c: c.value)
+        worst = _worst(cases)
         # pass_rate counts the cases that clear the bar this scorer is judged
         # against: case_floor when the metric is pass_rate, the floor itself
         # otherwise. A fixed 1.0 bar would print 0.0000 beside a passing
@@ -188,7 +311,7 @@ def build_report(
             "mean": round(sum(values) / len(values), 4),
             "min": round(min(values), 4),
             "pass_rate": round(sum(1 for v in values if v >= bar) / len(values), 4),
-            "worst_case": worst.case_id,
+            "worst_case": None if worst is None else worst.case_id,
         }
         if threshold is None:
             # Scored but not thresholded. Reported, not silently passed.
@@ -238,27 +361,9 @@ def build_report(
         rates=pd.DataFrame(rate_rows, columns=list(RATE_COLUMNS)),
         skipped=skipped,
         strict=strict,
+        lowest=pd.DataFrame(lowest_cases(scored), columns=list(LOWEST_COLUMNS)),
+        distribution=distribution(scored),
     )
-
-
-# The first of these a scorer's detail carries is the line worth printing.
-_REASON_KEYS = (
-    "error_type",
-    "failed",
-    "unsupported_numbers",
-    "unsupported_quotes",
-    "unsupported_sentences",
-    "worst_label",
-    "reason",
-)
-
-
-def reason(detail: Mapping[str, object]) -> str:
-    for key in _REASON_KEYS:
-        value = detail.get(key)
-        if value:
-            return f"{key}={value}"
-    return ""
 
 
 def failed_scorers(report: Report) -> set[str]:
